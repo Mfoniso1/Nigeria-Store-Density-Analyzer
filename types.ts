@@ -1,4 +1,3 @@
-
 export interface NominatimResult {
   place_id: number;
   licence: string;
@@ -27,6 +26,12 @@ export interface HexData {
   lon: number;
 }
 
+export interface AIHotspot {
+  lat: number;
+  lon: number;
+  reasoning: string;
+}
+
 export interface StateAnalysis {
   stateName: string;
   totalStores: number;
@@ -35,4 +40,6 @@ export interface StateAnalysis {
   hexes: Record<string, HexData>;
   boundingBox: [number, number, number, number];
   mapCenter: [number, number];
+  stores: OverpassElement[];
+  aiHotspot?: AIHotspot | null;
 }

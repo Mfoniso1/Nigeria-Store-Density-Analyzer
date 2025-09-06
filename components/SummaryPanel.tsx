@@ -1,4 +1,3 @@
-
 import React from 'react';
 import type { StateAnalysis } from '../types';
 
@@ -8,9 +7,11 @@ interface SummaryPanelProps {
   error: string | null;
   activeStateName: string | null;
   onSelectState: (stateName: string) => void;
+  onPredictHotspot: (stateName: string) => void;
+  isPredicting: string | null;
 }
 
-const SummaryPanel: React.FC<SummaryPanelProps> = ({ results, isLoading, error, activeStateName, onSelectState }) => {
+const SummaryPanel: React.FC<SummaryPanelProps> = ({ results, isLoading, error, activeStateName, onSelectState, onPredictHotspot, isPredicting }) => {
   if (isLoading && results.length === 0) return <div className="p-4 text-center">Fetching initial data...</div>;
   if (error) return <div className="p-4 text-red-400 text-center">{error}</div>;
   if (results.length === 0) {
@@ -49,6 +50,30 @@ const SummaryPanel: React.FC<SummaryPanelProps> = ({ results, isLoading, error, 
               <div className="text-gray-400">Peak Density:</div>
               <div className="text-right font-mono text-white">{result.densestHex?.count.toLocaleString() ?? 'N/A'} stores</div>
             </div>
+            
+            <div className="mt-4 pt-4 border-t border-gray-600/50">
+                {result.aiHotspot ? (
+                    <div>
+                        <h4 className="font-semibold text-cyan-300">AI Predicted Hotspot</h4>
+                        <p className="text-xs text-gray-400 italic my-1">"{result.aiHotspot.reasoning}"</p>
+                        <div className="text-sm font-mono text-cyan-200">
+                            Lat: {result.aiHotspot.lat.toFixed(4)}, Lon: {result.aiHotspot.lon.toFixed(4)}
+                        </div>
+                    </div>
+                ) : (
+                    <button
+                        onClick={(e) => {
+                            e.stopPropagation(); // Prevent card click
+                            onPredictHotspot(result.stateName);
+                        }}
+                        disabled={!!isPredicting}
+                        className="w-full text-sm bg-teal-600 hover:bg-teal-500 disabled:bg-gray-500 disabled:cursor-not-allowed text-white font-bold py-2 px-3 rounded-md transition-colors duration-200"
+                    >
+                        {isPredicting === result.stateName ? 'Thinking...' : 'Predict Hotspot with AI'}
+                    </button>
+                )}
+            </div>
+
           </div>
         ))}
       </div>

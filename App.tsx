@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback, useEffect } from 'react';
 import * as h3 from 'h3-js';
 import StateInputForm from './components/StateInputForm';
@@ -6,6 +5,7 @@ import SummaryPanel from './components/SummaryPanel';
 import DensityMap from './components/DensityMap';
 import Loader from './components/Loader';
 import { getStateBoundingBox, getStoresInBoundingBox } from './services/osmService';
+import { predictHotspot } from './services/geminiService';
 import type { StateAnalysis, HexData, OverpassElement } from './types';
 import { H3_RESOLUTION } from './constants';
 
@@ -13,6 +13,7 @@ const App: React.FC = () => {
   const [analysisResults, setAnalysisResults] = useState<StateAnalysis[]>([]);
   const [activeStateName, setActiveStateName] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isPredicting, setIsPredicting] = useState<string | null>(null);
   const [loadingMessage, setLoadingMessage] = useState<string>('');
   const [error, setError] = useState<string | null>(null);
 
@@ -53,7 +54,9 @@ const App: React.FC = () => {
       densestHex,
       hexes,
       boundingBox,
-      mapCenter
+      mapCenter,
+      stores,
+      aiHotspot: null,
     };
   };
 
@@ -74,7 +77,9 @@ const App: React.FC = () => {
       }
       setAnalysisResults(results);
       if (results.length > 0) {
-        setActiveStateName(results[0].stateName);
+        // Sort by total stores and set active to the one with most stores initially
+        const sorted = [...results].sort((a,b) => b.totalStores - a.totalStores);
+        setActiveStateName(sorted[0].stateName);
       } else {
         setActiveStateName(null);
       }
@@ -87,6 +92,40 @@ const App: React.FC = () => {
       setLoadingMessage('');
     }
   }, [analysisResults]);
+  
+  const handleSelectState = (stateName: string) => {
+      const result = analysisResults.find(r => r.stateName === stateName);
+      if(result) {
+          // Create a new object to ensure the map updater's dependency array catches the change
+          const updatedResult = {...result, aiHotspot: null};
+          setAnalysisResults(prev => prev.map(r => r.stateName === stateName ? updatedResult : r));
+          setActiveStateName(stateName);
+      }
+  };
+
+  const handlePredictHotspot = useCallback(async (stateName: string) => {
+    setIsPredicting(stateName);
+    setError(null);
+    try {
+        const resultToUpdate = analysisResults.find(r => r.stateName === stateName);
+        if (!resultToUpdate) throw new Error("State data not found for prediction.");
+
+        const prediction = await predictHotspot(stateName, resultToUpdate.stores, resultToUpdate.boundingBox);
+
+        setAnalysisResults(prevResults =>
+            prevResults.map(r =>
+                r.stateName === stateName ? { ...r, aiHotspot: prediction } : r
+            )
+        );
+        setActiveStateName(stateName); // Ensure the updated state is active
+    } catch (e) {
+        const err = e as Error;
+        setError(`AI Prediction failed: ${err.message}`);
+        console.error(e);
+    } finally {
+        setIsPredicting(null);
+    }
+}, [analysisResults]);
 
   const activeAnalysis = analysisResults.find(r => r.stateName === activeStateName) || null;
 
@@ -100,7 +139,7 @@ const App: React.FC = () => {
     <div className="min-h-screen bg-gray-900 text-gray-100 flex flex-col p-4 sm:p-6 lg:p-8">
       <header className="mb-6 text-center">
         <h1 className="text-4xl font-bold text-white">Nigerian Store Density Analyzer</h1>
-        <p className="text-lg text-cyan-300 mt-2">Visualize store distribution across Nigerian states using OpenStreetMap data.</p>
+        <p className="text-lg text-cyan-300 mt-2">Visualize store distribution and predict new hotspots with AI.</p>
       </header>
       
       <main className="flex-grow grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -111,7 +150,9 @@ const App: React.FC = () => {
             isLoading={isLoading} 
             error={error}
             activeStateName={activeStateName}
-            onSelectState={setActiveStateName}
+            onSelectState={handleSelectState}
+            onPredictHotspot={handlePredictHotspot}
+            isPredicting={isPredicting}
           />
         </div>
         
@@ -127,7 +168,7 @@ const App: React.FC = () => {
       </main>
       
       <footer className="text-center mt-8 text-gray-500 text-sm">
-        <p>Data sourced from OpenStreetMap. Map tiles by CARTO.</p>
+        <p>Data sourced from OpenStreetMap. Map tiles by CARTO. AI predictions by Google Gemini.</p>
       </footer>
     </div>
   );
