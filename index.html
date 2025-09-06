@@ -5,12 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nigerian Store Density Analyzer</title>
     
-    <!-- Polyfill for process.env to prevent app crash in browser environments. -->
+    <!-- Polyfill for process.env. API_KEY is injected here. -->
     <script>
       if (typeof process === 'undefined') {
         window.process = {
           env: {
-            API_KEY: undefined // Default to undefined, the app should handle this gracefully.
+            // This placeholder should be replaced by your CI/CD pipeline during deployment.
+            // For local development, you can manually replace it with your key. See README.md for details.
+            API_KEY: '%%GOOGLE_API_KEY%%'
           }
         };
       }

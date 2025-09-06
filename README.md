@@ -60,25 +60,58 @@ The application follows a simple yet powerful data processing pipeline:
 └── types.ts                 # TypeScript type definitions
 ```
 
-## Getting Started
+## Running the Application & Configuration
 
-To run this project locally, you'll need Node.js and a package manager like npm or yarn.
+This is a client-side only application and can be run by opening the `index.html` file in a modern web browser.
 
-1.  **Clone the repository** (or ensure all the project files are in a single directory).
+### API Key Setup
 
-2.  **Install dependencies**:
-    ```bash
-    npm install
+The AI hotspot prediction feature requires a Google Gemini API key.
+
+> #### 🚨 Security Warning 🚨
+> The current setup exposes your Google Gemini API key on the client-side (in the user's browser). This is **highly insecure** for a public-facing production application. Anyone can view your browser's network requests or the page source and steal your API key, potentially leading to unauthorized use and unexpected charges to your account.
+>
+> **For a real-world production application, it is strongly recommended to implement a backend proxy.** The frontend would make requests to your own server, and your server would securely hold the API key and make requests to the Google Gemini API on your behalf.
+>
+> The following instructions are suitable for local development or personal projects where the application is not publicly accessible.
+
+### Method 1: Local Development
+
+For quickly running the app on your local machine:
+
+1.  Open the `index.html` file in a text editor.
+2.  Locate the `<script>` tag near the top of the file inside the `<head>`.
+3.  Replace the placeholder `'%%GOOGLE_API_KEY%%'` with your actual Google Gemini API key.
+
+    ```html
+    <!-- Before -->
+    <script>
+      if (typeof process === 'undefined') {
+        window.process = { env: { API_KEY: '%%GOOGLE_API_KEY%%' } };
+      }
+    </script>
+
+    <!-- After -->
+    <script>
+      if (typeof process === 'undefined') {
+        window.process = { env: { API_KEY: 'YOUR_SUPER_SECRET_API_KEY_HERE' } };
+      }
+    </script>
     ```
+4.  **Important**: If you are using version control (like Git), **do not commit this change**.
 
-3.  **Set up your API Key**: This project uses the Google Gemini API for AI predictions. You will need an API key from [Google AI Studio](https://aistudio.google.com/app/apikey). The application expects this key to be available as `process.env.API_KEY` in the execution environment. How you set this up will depend on your deployment and development environment. For example, when using a tool like Vite, you might create a `.env` file and configure your build to expose the variable.
+### Method 2: Production Deployment (Recommended)
 
-4.  **Start the development server**:
-    ```bash
-    npm run start
-    ```
-    (This assumes you have a `start` script in your `package.json` configured to run a local web server, e.g., using `vite`).
+For a production environment, you should not hardcode the key in `index.html`. Instead, your deployment process should automatically replace the placeholder. This keeps your secret key out of your source code repository.
 
-5.  Open your browser and navigate to the local address provided (usually `http://localhost:5173`).
+Most hosting providers (like Vercel, Netlify, AWS Amplify, Google Cloud) allow you to set secret environment variables. You can then use their build/deployment tools to perform a "find and replace" on the placeholder in `index.html`.
 
-The application requires an internet connection to fetch data from the OpenStreetMap and Google Gemini APIs.
+For example, using a common shell command like `sed` in your CI/CD pipeline:
+
+```bash
+# This example uses 'sed' to replace the placeholder with an environment variable
+# named GOOGLE_API_KEY that you've set in your hosting environment's secrets.
+sed -i "s|'%%GOOGLE_API_KEY%%'|'$GOOGLE_API_KEY'|g" index.html
+```
+
+This command finds the placeholder string and replaces it with the value of the `$GOOGLE_API_KEY` environment variable, ensuring your key is injected securely at deployment time.

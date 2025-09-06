@@ -4,13 +4,10 @@ import type { OverpassElement, AIHotspot } from '../types';
 // This function is defined in the global scope of the module,
 // so it will be initialized only once.
 const getAiClient = () => {
-    // IMPORTANT: This is a placeholder for a secure API key handling mechanism.
-    // In a real application, the API key should be stored securely and not exposed in the client-side code.
-    // For this example, we assume it's provided via an environment variable.
     const apiKey = process.env.API_KEY;
-    if (!apiKey) {
-        console.error("API_KEY is not set. Please set it in your environment variables.");
-        // Return a dummy client or throw an error
+    // Check if the key is the placeholder or missing, which means it wasn't replaced during deployment.
+    if (!apiKey || apiKey.startsWith('%%')) {
+        console.error("API_KEY is not configured. Please follow the instructions in README.md to set it up for local development or production deployment.");
         return null;
     }
     return new GoogleGenAI({ apiKey });
@@ -34,7 +31,7 @@ export const predictHotspot = async (
   boundingBox: [number, number, number, number]
 ): Promise<AIHotspot> => {
   if (!ai) {
-    throw new Error("AI client is not initialized. Make sure API_KEY is set.");
+    throw new Error("AI client is not initialized. Make sure your API_KEY is set correctly by following the README.md instructions.");
   }
   
   // To avoid overwhelming the API, sample the store data if it's too large
