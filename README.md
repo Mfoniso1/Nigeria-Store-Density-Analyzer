@@ -1,7 +1,6 @@
-
 # Nigerian Store Density Analyzer
 
-A web application to analyze and visualize the density of commercial stores across different states in Nigeria using real-time data from OpenStreetMap. Users can select one or more states, compare their store densities, and view the results on an interactive map and a summary panel.
+A web application to analyze and visualize the density of commercial stores across different states in Nigeria using real-time data from OpenStreetMap. Users can select one or more states, compare their store densities, view the results on an interactive map, and leverage Google Gemini to predict new commercial hotspots.
 
 ## Features
 
@@ -13,6 +12,7 @@ A web application to analyze and visualize the density of commercial stores acro
     -   Total number of stores found.
     -   Average store density per grid cell.
     -   The location and count of the most dense area.
+-   **AI Hotspot Prediction**: Utilizes the Google Gemini API to analyze existing store locations and suggest a new potential commercial hotspot with a rationale.
 -   **Responsive Design**: A clean, modern UI built with Tailwind CSS that works seamlessly on desktop and mobile devices.
 -   **Live Data**: Pulls data directly from the OpenStreetMap Overpass API, ensuring the information is up-to-date.
 -   **Efficient & Asynchronous**: Fetches and processes data asynchronously, with clear loading indicators for a smooth user experience.
@@ -28,6 +28,7 @@ The application follows a simple yet powerful data processing pipeline:
 5.  **Visualization**: The processed data is rendered on the frontend:
     -   The **Summary Panel** displays the aggregated metrics in a clear, ranked list.
     -   The **Density Map** component renders each hexagon on a Leaflet map, coloring it based on its store count relative to the densest cell.
+6.  **AI Prediction (Optional)**: The user can request an AI prediction for a state. The application sends the existing store coordinates to the **Google Gemini API** and receives a suggested latitude/longitude for a new hotspot, along with a reason for the choice.
 
 ## Technical Stack
 
@@ -35,6 +36,7 @@ The application follows a simple yet powerful data processing pipeline:
 -   **Mapping**: React-Leaflet, h3-js
 -   **Styling**: Tailwind CSS
 -   **Data Source**: OpenStreetMap (via Nominatim and Overpass APIs)
+-   **AI**: Google Gemini API (`@google/genai`)
 
 ## Project Structure
 
@@ -47,7 +49,8 @@ The application follows a simple yet powerful data processing pipeline:
 │   └── SummaryPanel.tsx     # Panel to display analysis results
 │
 ├── services/
-│   └── osmService.ts        # Functions to fetch data from OSM APIs
+│   ├── osmService.ts        # Functions to fetch data from OSM APIs
+│   └── geminiService.ts     # Functions to call the Google Gemini API
 │
 ├── App.tsx                  # Main application component, handles state and logic
 ├── constants.ts             # App-wide constants (API URLs, state list)
@@ -68,12 +71,14 @@ To run this project locally, you'll need Node.js and a package manager like npm 
     npm install
     ```
 
-3.  **Start the development server**:
+3.  **Set up your API Key**: This project uses the Google Gemini API for AI predictions. You will need an API key from [Google AI Studio](https://aistudio.google.com/app/apikey). The application expects this key to be available as `process.env.API_KEY` in the execution environment. How you set this up will depend on your deployment and development environment. For example, when using a tool like Vite, you might create a `.env` file and configure your build to expose the variable.
+
+4.  **Start the development server**:
     ```bash
     npm run start
     ```
     (This assumes you have a `start` script in your `package.json` configured to run a local web server, e.g., using `vite`).
 
-4.  Open your browser and navigate to the local address provided (usually `http://localhost:5173`).
+5.  Open your browser and navigate to the local address provided (usually `http://localhost:5173`).
 
-The application requires an internet connection to fetch data from the OpenStreetMap APIs. No API keys are needed.
+The application requires an internet connection to fetch data from the OpenStreetMap and Google Gemini APIs.
