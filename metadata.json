@@ -1,0 +1,5 @@
+{
+  "name": "Nigerian Store Density Analyzer",
+  "description": "A web application to analyze and visualize the density of stores across different states in Nigeria using OpenStreetMap data. Users can compare multiple states and view the results on an interactive map and a summary table.",
+  "requestFramePermissions": []
+}
