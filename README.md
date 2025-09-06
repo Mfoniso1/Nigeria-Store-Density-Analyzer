@@ -69,49 +69,51 @@ This is a client-side only application and can be run by opening the `index.html
 The AI hotspot prediction feature requires a Google Gemini API key.
 
 > #### 🚨 Security Warning 🚨
-> The current setup exposes your Google Gemini API key on the client-side (in the user's browser). This is **highly insecure** for a public-facing production application. Anyone can view your browser's network requests or the page source and steal your API key, potentially leading to unauthorized use and unexpected charges to your account.
+> Exposing your Google Gemini API key on the client-side (in the user's browser) is **highly insecure** for a public-facing application. Anyone can find and steal your API key, potentially leading to unauthorized use and unexpected charges.
 >
-> **For a real-world production application, it is strongly recommended to implement a backend proxy.** The frontend would make requests to your own server, and your server would securely hold the API key and make requests to the Google Gemini API on your behalf.
->
-> The following instructions are suitable for local development or personal projects where the application is not publicly accessible.
+> **The recommended approach is to use a deployment platform like Vercel that can securely inject your key at build time.** The instructions below cover this secure method, as well as a less secure method for local development only.
 
-### Method 1: Local Development
+
+### Method 1: Local Development Only
 
 For quickly running the app on your local machine:
 
 1.  Open the `index.html` file in a text editor.
-2.  Locate the `<script>` tag near the top of the file inside the `<head>`.
+2.  Locate the `<script>` tag near the top of the file.
 3.  Replace the placeholder `'%%GOOGLE_API_KEY%%'` with your actual Google Gemini API key.
-
     ```html
-    <!-- Before -->
+    <!-- Change this: -->
     <script>
       if (typeof process === 'undefined') {
         window.process = { env: { API_KEY: '%%GOOGLE_API_KEY%%' } };
       }
     </script>
 
-    <!-- After -->
+    <!-- To this: -->
     <script>
       if (typeof process === 'undefined') {
-        window.process = { env: { API_KEY: 'YOUR_SUPER_SECRET_API_KEY_HERE' } };
+        window.process = { env: { API_KEY: 'YOUR_API_KEY_HERE' } };
       }
     </script>
     ```
-4.  **Important**: If you are using version control (like Git), **do not commit this change**.
+4.  **Important**: If you use version control (like Git), **do not commit this change**.
 
-### Method 2: Production Deployment (Recommended)
+### Method 2: Deploying to Vercel (Recommended & Secure)
 
-For a production environment, you should not hardcode the key in `index.html`. Instead, your deployment process should automatically replace the placeholder. This keeps your secret key out of your source code repository.
+Vercel is an excellent platform for deploying this application. Here’s how to configure it to securely use your API key:
 
-Most hosting providers (like Vercel, Netlify, AWS Amplify, Google Cloud) allow you to set secret environment variables. You can then use their build/deployment tools to perform a "find and replace" on the placeholder in `index.html`.
+1.  **Create a New Vercel Project**: Connect your Git repository (GitHub, GitLab, etc.) to Vercel.
+2.  **Configure Project Settings**:
+    *   When importing, Vercel will ask you to configure the project.
+    *   **Framework Preset**: Select `Other`.
+    *   **Build & Development Settings** (expand this section):
+        *   **Build Command**: Enter the following command: `sed -i "s|'%%GOOGLE_API_KEY%%'|'$GOOGLE_API_KEY'|g" index.html`
+        *   **Output Directory**: Leave this blank. The build command modifies the file in place without creating an output directory.
+    *   **Environment Variables** (expand this section):
+        *   Add a new variable:
+            *   **Name**: `GOOGLE_API_KEY`
+            *   **Value**: Paste your actual Google Gemini API key.
+        *   Ensure the variable is available to all environments (Production, Preview, Development).
+3.  **Deploy**: Click the "Deploy" button. Vercel will run the build command, which replaces the `%%GOOGLE_API_KEY%%` placeholder in your `index.html` with the secure environment variable you just set.
 
-For example, using a common shell command like `sed` in your CI/CD pipeline:
-
-```bash
-# This example uses 'sed' to replace the placeholder with an environment variable
-# named GOOGLE_API_KEY that you've set in your hosting environment's secrets.
-sed -i "s|'%%GOOGLE_API_KEY%%'|'$GOOGLE_API_KEY'|g" index.html
-```
-
-This command finds the placeholder string and replaces it with the value of the `$GOOGLE_API_KEY` environment variable, ensuring your key is injected securely at deployment time.
+This process ensures your API key is never exposed in your source code, providing a secure and professional setup.
