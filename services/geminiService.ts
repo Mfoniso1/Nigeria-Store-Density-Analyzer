@@ -12,8 +12,8 @@ const getAiClient = () => {
   }
   return new GoogleGenerativeAI({ apiKey });
 };
+const ai = new GoogleGenAI({ apiKey });
 
-const ai = getAiClient();
 
 export const predictHotspot = async (
   stateName: string,
