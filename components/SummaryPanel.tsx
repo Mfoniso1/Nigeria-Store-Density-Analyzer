@@ -66,7 +66,7 @@ const SummaryPanel: React.FC<SummaryPanelProps> = ({ results, isLoading, error, 
                             e.stopPropagation(); // Prevent card click
                             onPredictHotspot(result.stateName);
                         }}
-                        disabled={!!isPredicting}
+                        disabled={isPredicting === result.stateName}
                         className="w-full text-sm bg-teal-600 hover:bg-teal-500 disabled:bg-gray-500 disabled:cursor-not-allowed text-white font-bold py-2 px-3 rounded-md transition-colors duration-200"
                     >
                         {isPredicting === result.stateName ? 'Thinking...' : 'Predict Hotspot with AI'}
