@@ -1,13 +1,12 @@
+
 import { GoogleGenerativeAI, Type } from "@google/genai";
 import type { OverpassElement, AIHotspot } from "../types";
 
 // Create AI client once
 const getAiClient = () => {
-  const apiKey = import.meta.env.VITE_GOOGLE_API_KEY; // ✅ use Vite env
+  const apiKey = import.meta.env.VITE_GOOGLE_API_KEY; // ✅ Vite env
   if (!apiKey) {
-    console.error(
-      "VITE_GOOGLE_API_KEY is missing. Please configure it in Vercel → Project Settings → Environment Variables."
-    );
+    console.error("VITE_GOOGLE_API_KEY is missing. Please configure it in Vercel → Project Settings → Environment Variables.");
     return null;
   }
   return new GoogleGenerativeAI({ apiKey });
@@ -20,7 +19,7 @@ const responseSchema = {
   properties: {
     lat: { type: Type.NUMBER, description: "Predicted latitude for the new hotspot" },
     lon: { type: Type.NUMBER, description: "Predicted longitude for the new hotspot" },
-    reasoning: { type: Type.STRING, description: "A brief, one-sentence explanation for why this location was chosen" },
+    reasoning: { type: Type.STRING, description: "Why this location was chosen" },
   },
   required: ["lat", "lon", "reasoning"],
 };
@@ -39,20 +38,17 @@ export const predictHotspot = async (
   if (stores.length > 500) {
     storeSample = stores.sort(() => 0.5 - Math.random()).slice(0, 500);
   }
-  const storeCoords = storeSample.map((s) => `(${s.lat.toFixed(4)}, ${s.lon.toFixed(4)})`).join("; ");
+  const storeCoords = storeSample.map(s => `(${s.lat.toFixed(4)}, ${s.lon.toFixed(4)})`).join("; ");
   const bboxString = `minLat: ${boundingBox[0]}, minLon: ${boundingBox[1]}, maxLat: ${boundingBox[2]}, maxLon: ${boundingBox[3]}`;
 
   const prompt = `
     You are a professional geospatial analyst.
-    I am analyzing the commercial store density in ${stateName} State, Nigeria.
-    The state's bounding box is approximately ${bboxString}.
-    Here is a list of existing store coordinates: ${storeCoords}.
-
-    Your task is to predict the latitude and longitude of a single, new potential commercial hotspot.
-    This location should be a strategic point for a new store, likely near existing clusters but in an area with potential for commercial growth. The prediction must be within the provided bounding box.
-    Provide a brief, one-sentence reasoning for your choice.
-
-    Return your answer ONLY in valid JSON format matching the schema.
+    I am analyzing store density in ${stateName}, Nigeria.
+    Bounding box: ${bboxString}.
+    Existing stores: ${storeCoords}.
+    Predict a new commercial hotspot (lat, lon) within the box.
+    Give a one-sentence reasoning.
+    Return ONLY valid JSON matching the schema.
   `;
 
   try {
@@ -61,7 +57,7 @@ export const predictHotspot = async (
       contents: prompt,
       config: {
         responseMimeType: "application/json",
-        responseSchema: responseSchema,
+        responseSchema,
       },
     });
 
