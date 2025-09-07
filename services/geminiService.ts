@@ -76,5 +76,4 @@ export const predictHotspot = async (
   } catch (e) {
     console.error("Error calling Gemini API:", e);
     throw new Error("Failed to get a prediction from the AI model.");
-  }
-};
+  };
