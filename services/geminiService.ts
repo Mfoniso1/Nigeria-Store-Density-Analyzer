@@ -1,4 +1,4 @@
-import { GoogleGenerativeAI } from "@google/genai";
+import { GoogleGenAI, Type } from "@google/genai";
 import type { OverpassElement, AIHotspot } from "../types";
 
 // Create AI client once
@@ -12,8 +12,7 @@ const getAiClient = () => {
   }
   return new GoogleGenerativeAI({ apiKey });
 };
-const ai = new GoogleGenAI({ apiKey });
-
+const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GOOGLE_API_KEY });
 
 export const predictHotspot = async (
   stateName: string,
