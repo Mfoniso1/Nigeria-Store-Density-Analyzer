@@ -7,12 +7,11 @@
     
     <!-- Polyfill for process.env. API_KEY is injected here. -->
     <script>
-      if (typeof process === 'undefined') {
         window.process = {
           env: {
             // This placeholder should be replaced by your CI/CD pipeline during deployment.
             // For local development, you can manually replace it with your key. See README.md for details.
-            API_KEY: '%%GOOGLE_API_KEY%%'
+            API_KEY: '__API_KEY__'
           }
         };
       }
